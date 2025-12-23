@@ -1,6 +1,6 @@
 import os
 import tempfile
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Callable
 from pathlib import Path
 from dataclasses import dataclass
 import subprocess
@@ -14,6 +14,7 @@ from moviepy.editor import (
 )
 
 from .ovi_generator import GeneratedClip
+from .lipsync_processor import MuseTalkLipSyncProcessor, LipSyncConfig, create_audio_segment
 
 
 @dataclass
@@ -27,11 +28,29 @@ class CompositionConfig:
     audio_codec: str = "aac"
     video_bitrate: str = "8M"
     audio_bitrate: str = "192k"
+    enable_lipsync: bool = False
 
 
 class VideoComposer:
-    def __init__(self, config: Optional[CompositionConfig] = None):
+    def __init__(
+        self,
+        config: Optional[CompositionConfig] = None,
+        progress_callback: Optional[Callable[[str], None]] = None
+    ):
         self.config = config or CompositionConfig()
+        self.progress_callback = progress_callback
+        self.lipsync_processor = None
+
+        if self.config.enable_lipsync:
+            self.lipsync_processor = MuseTalkLipSyncProcessor(
+                config=LipSyncConfig(),
+                progress_callback=self._log
+            )
+
+    def _log(self, message: str):
+        if self.progress_callback:
+            self.progress_callback(message)
+        print(f"[Composer] {message}")
 
     def compose_music_video(
         self,
@@ -41,6 +60,10 @@ class VideoComposer:
         use_crossfade: bool = True
     ) -> str:
         clips_sorted = sorted(clips, key=lambda c: c.segment_index)
+
+        if self.config.enable_lipsync and self.lipsync_processor:
+            self._log("Starting lip sync processing...")
+            clips_sorted = self._apply_lipsync_to_clips(clips_sorted, original_audio_path)
 
         video_clips = []
         for clip in clips_sorted:
@@ -202,3 +225,51 @@ class VideoComposer:
         preview.close()
 
         return output_path
+
+    def _apply_lipsync_to_clips(
+        self,
+        clips: List[GeneratedClip],
+        audio_path: str
+    ) -> List[GeneratedClip]:
+        if not self.lipsync_processor:
+            return clips
+
+        temp_dir = Path(clips[0].video_path).parent / "lipsync_temp"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+
+        synced_clips = []
+        total = len(clips)
+
+        for idx, clip in enumerate(clips):
+            self._log(f"Lip syncing clip {idx + 1}/{total}")
+
+            audio_segment_path = temp_dir / f"audio_segment_{idx:04d}.wav"
+            create_audio_segment(
+                audio_path=audio_path,
+                start_time=clip.start_time,
+                duration=clip.end_time - clip.start_time,
+                output_path=str(audio_segment_path)
+            )
+
+            output_video = temp_dir / f"synced_{Path(clip.video_path).name}"
+
+            try:
+                self.lipsync_processor.process_video(
+                    input_video_path=clip.video_path,
+                    audio_path=str(audio_segment_path),
+                    output_path=str(output_video)
+                )
+
+                synced_clip = GeneratedClip(
+                    segment_index=clip.segment_index,
+                    start_time=clip.start_time,
+                    end_time=clip.end_time,
+                    video_path=str(output_video),
+                    prompt_used=clip.prompt_used
+                )
+                synced_clips.append(synced_clip)
+            except Exception as e:
+                self._log(f"Lip sync failed for clip {idx + 1}: {e}. Using original.")
+                synced_clips.append(clip)
+
+        return synced_clips

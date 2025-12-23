@@ -31,6 +31,9 @@ class Config:
     output_video_bitrate: str = "8M"
     output_audio_bitrate: str = "192k"
 
+    enable_lipsync: bool = False
+    musetalk_path: str = "../MuseTalk"
+
     api_host: str = "127.0.0.1"
     api_port: int = 5000
     debug: bool = False
@@ -52,7 +55,9 @@ class Config:
             extract_lyrics=os.getenv("EXTRACT_LYRICS", "true").lower() == "true",
             api_host=os.getenv("API_HOST", "127.0.0.1"),
             api_port=int(os.getenv("API_PORT", "5000")),
-            debug=os.getenv("DEBUG", "false").lower() == "true"
+            debug=os.getenv("DEBUG", "false").lower() == "true",
+            enable_lipsync=os.getenv("ENABLE_LIPSYNC", "false").lower() == "true",
+            musetalk_path=os.getenv("MUSETALK_PATH", "../MuseTalk")
         )
 
     def ensure_directories(self):
@@ -79,5 +84,7 @@ class Config:
             "crossfade_duration": self.crossfade_duration,
             "api_host": self.api_host,
             "api_port": self.api_port,
-            "debug": self.debug
+            "debug": self.debug,
+            "enable_lipsync": self.enable_lipsync,
+            "musetalk_path": self.musetalk_path
         }

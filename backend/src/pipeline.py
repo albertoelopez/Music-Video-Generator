@@ -88,10 +88,16 @@ class MusicVideoPipeline:
             video_codec=self.config.output_video_codec,
             audio_codec=self.config.output_audio_codec,
             video_bitrate=self.config.output_video_bitrate,
-            audio_bitrate=self.config.output_audio_bitrate
+            audio_bitrate=self.config.output_audio_bitrate,
+            enable_lipsync=self.config.enable_lipsync
         )
 
-        self.video_composer = VideoComposer(config=comp_config)
+        self.video_composer = VideoComposer(
+            config=comp_config,
+            progress_callback=lambda msg: self._update_progress(
+                self._current_status, 0.85, msg, 4, 4
+            )
+        )
 
         self._current_status = PipelineStatus.IDLE
 
