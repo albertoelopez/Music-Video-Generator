@@ -19,14 +19,14 @@ class GeneratedClip:
 
 @dataclass
 class GenerationConfig:
-    model_name: str = "960x960_10s"
-    video_height: int = 960
-    video_width: int = 960
+    model_name: str = "720x720_5s"
+    video_height: int = 720
+    video_width: int = 720
     sample_steps: int = 50
     video_guidance_scale: float = 4.0
     audio_guidance_scale: float = 3.0
     cpu_offload: bool = True
-    fp8: bool = False
+    fp8: bool = True
     seed: int = 100
 
 

@@ -128,7 +128,7 @@ export const App: React.FC = () => {
       }
 
       const pollJobStatus = async (jobId: string): Promise<void> => {
-        const maxAttempts = 600;
+        const maxAttempts = 9000;
         let attempts = 0;
 
         while (attempts < maxAttempts) {

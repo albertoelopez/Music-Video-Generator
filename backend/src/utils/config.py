@@ -10,17 +10,17 @@ class Config:
     output_dir: str = "./output"
     temp_dir: str = "./temp"
 
-    video_width: int = 960
-    video_height: int = 960
+    video_width: int = 720
+    video_height: int = 720
     video_fps: int = 24
     segment_duration: float = 5.0
 
-    model_name: str = "960x960_10s"
+    model_name: str = "720x720_5s"
     sample_steps: int = 50
     video_guidance_scale: float = 4.0
     audio_guidance_scale: float = 3.0
     cpu_offload: bool = True
-    fp8: bool = False
+    fp8: bool = True
 
     whisper_model: str = "base"
     extract_lyrics: bool = True
@@ -41,13 +41,13 @@ class Config:
             ovi_path=os.getenv("OVI_PATH", "../Ovi"),
             output_dir=os.getenv("OUTPUT_DIR", "./output"),
             temp_dir=os.getenv("TEMP_DIR", "./temp"),
-            video_width=int(os.getenv("VIDEO_WIDTH", "960")),
-            video_height=int(os.getenv("VIDEO_HEIGHT", "960")),
+            video_width=int(os.getenv("VIDEO_WIDTH", "720")),
+            video_height=int(os.getenv("VIDEO_HEIGHT", "720")),
             segment_duration=float(os.getenv("SEGMENT_DURATION", "5.0")),
-            model_name=os.getenv("MODEL_NAME", "960x960_10s"),
+            model_name=os.getenv("MODEL_NAME", "720x720_5s"),
             sample_steps=int(os.getenv("SAMPLE_STEPS", "50")),
             cpu_offload=os.getenv("CPU_OFFLOAD", "true").lower() == "true",
-            fp8=os.getenv("FP8", "false").lower() == "true",
+            fp8=os.getenv("FP8", "true").lower() == "true",
             whisper_model=os.getenv("WHISPER_MODEL", "base"),
             extract_lyrics=os.getenv("EXTRACT_LYRICS", "true").lower() == "true",
             api_host=os.getenv("API_HOST", "127.0.0.1"),
