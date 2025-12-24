@@ -4,9 +4,12 @@ from typing import Optional
 from pathlib import Path
 
 
+def _get_project_root() -> str:
+    return str(Path(__file__).parent.parent.parent.parent.resolve())
+
 @dataclass
 class Config:
-    ovi_path: str = "../Ovi"
+    ovi_path: str = ""
     output_dir: str = "./output"
     temp_dir: str = "./temp"
 
@@ -32,7 +35,13 @@ class Config:
     output_audio_bitrate: str = "192k"
 
     enable_lipsync: bool = False
-    musetalk_path: str = "../MuseTalk"
+    musetalk_path: str = ""
+
+    def __post_init__(self):
+        if not self.ovi_path:
+            self.ovi_path = str(Path(_get_project_root()) / "Ovi")
+        if not self.musetalk_path:
+            self.musetalk_path = str(Path(_get_project_root()) / "MuseTalk")
 
     api_host: str = "127.0.0.1"
     api_port: int = 5000
@@ -40,8 +49,9 @@ class Config:
 
     @classmethod
     def from_env(cls) -> "Config":
+        default_ovi = str(Path(_get_project_root()) / "Ovi")
         return cls(
-            ovi_path=os.getenv("OVI_PATH", "../Ovi"),
+            ovi_path=os.getenv("OVI_PATH", default_ovi),
             output_dir=os.getenv("OUTPUT_DIR", "./output"),
             temp_dir=os.getenv("TEMP_DIR", "./temp"),
             video_width=int(os.getenv("VIDEO_WIDTH", "720")),
@@ -57,7 +67,7 @@ class Config:
             api_port=int(os.getenv("API_PORT", "5000")),
             debug=os.getenv("DEBUG", "false").lower() == "true",
             enable_lipsync=os.getenv("ENABLE_LIPSYNC", "false").lower() == "true",
-            musetalk_path=os.getenv("MUSETALK_PATH", "../MuseTalk")
+            musetalk_path=os.getenv("MUSETALK_PATH", str(Path(_get_project_root()) / "MuseTalk"))
         )
 
     def ensure_directories(self):

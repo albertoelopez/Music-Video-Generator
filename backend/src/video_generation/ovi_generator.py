@@ -47,17 +47,15 @@ class OviVideoGenerator:
         if self._initialized:
             return
 
-        ovi_path_str = str(self.ovi_path)
+        ovi_path_str = str(self.ovi_path.resolve())
         if ovi_path_str not in sys.path:
             sys.path.insert(0, ovi_path_str)
 
+        original_cwd = os.getcwd()
         try:
-            from ovi.ovi_fusion_engine import OviFusionEngine, DEFAULT_CONFIG
+            os.chdir(ovi_path_str)
 
-            DEFAULT_CONFIG["cpu_offload"] = self.config.cpu_offload
-            DEFAULT_CONFIG["fp8"] = self.config.fp8
-            DEFAULT_CONFIG["model_name"] = self.config.model_name
-            DEFAULT_CONFIG["mode"] = "t2v"
+            from ovi.ovi_fusion_engine import OviFusionEngine
 
             self._engine = OviFusionEngine()
             self._initialized = True
@@ -66,6 +64,8 @@ class OviVideoGenerator:
                 f"Failed to import Ovi. Make sure Ovi is cloned to {self.ovi_path}. "
                 f"Error: {e}"
             )
+        finally:
+            os.chdir(original_cwd)
 
     def generate_clips(
         self,
