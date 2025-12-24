@@ -48,6 +48,17 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+### 3a. Setup MuseTalk Lip Sync (Optional)
+
+For lip sync functionality, install the MMLab packages:
+
+```bash
+cd backend
+./setup_mmlab.sh
+```
+
+This installs mmpose, mmcv (with CUDA), mmdet, and applies necessary compatibility patches for PyTorch 2.6.0.
+
 Create symlinks to Ovi:
 ```bash
 ln -s ../Ovi/ovi ovi
@@ -190,6 +201,22 @@ Should show:
 ```
 backend/ovi -> ../Ovi/ovi
 backend/ckpts -> ../Ovi/ckpts
+```
+
+### Lip Sync Not Working
+
+If you see `ModuleNotFoundError: No module named 'mmpose'`, run the MMLab setup:
+```bash
+cd backend
+./setup_mmlab.sh
+```
+
+If mmcv import fails with `No module named 'mmcv._ext'`, mmcv needs to be rebuilt with CUDA:
+```bash
+source venv/bin/activate
+pip uninstall mmcv -y
+export MMCV_WITH_OPS=1 FORCE_CUDA=1
+pip install mmcv==2.2.0 --no-cache-dir --no-build-isolation
 ```
 
 ## License
